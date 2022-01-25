@@ -1,1 +1,7 @@
-# xls-cli
+
+
+# Setup
+
+```
+$ pip install openpyxl
+```
