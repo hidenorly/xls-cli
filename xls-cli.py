@@ -28,12 +28,14 @@ def ljust_jp(value, length, pad = " "):
   return value + pad * (length-count_length)
 
 def isRobustNumeric(data):
-  try:
-    float(data)
-  except ValueError:
-    return False
-  else:
+  if data is not None:
+    try:
+      float(data)
+    except ValueError:
+      return False
     return True
+  else:
+    return False
 
 def getCsvJsonCommon(row):
   result = ""
@@ -41,12 +43,12 @@ def getCsvJsonCommon(row):
   for aData in row:
     if result != "":
       result = result + ", "
+    if aData is None:
+      aData = ""
     if isRobustNumeric(aData):
-      if pd.isnull(aData):
-        aData = "\"\""
       result = result + str(aData)
     else:
-      result = result + "\"" + aData + "\""
+      result = result + "\"" + str(aData) + "\""
 
   return result
 
@@ -61,7 +63,7 @@ def getJson(row):
 
 if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Parse command line options.')
-  parser.add_argument('args', nargs='*', help='Specify pdf files e.g. pdf1.pdf pdf2.pdf')
+  parser.add_argument('args', nargs='*', help='Specify xlsx files e.g. book1.xlsx book2.xls')
   parser.add_argument('-j', '--json', action='store_true', default=False, help='Output as json')
   parser.add_argument('-c', '--csv', action='store_true', default=False, help='Output as csv')
   parser.add_argument('-m', '--merge', action='store_true', default=False, help='Output table as merged')
@@ -76,18 +78,15 @@ if __name__=="__main__":
     print("[")
   for aFile in args.args:
     if os.path.exists( aFile ):
-      workBook = xl.load_workbook( aFile )
+      workBook = xl.load_workbook( aFile, read_only=True, keep_vba=False, data_only=True, keep_links=False )
       for aSheet in workBook:
         if args.json and not args.merge:
           print("[")
-          for aRow in aSheet.values():
-            data = []
-            for aCell in aRow:
-              data.append( aCell )
+        for aRow in aSheet.values:
           if args.json:
-            print( "  " + getJson(data) )
+            print( "  " + getJson(aRow) )
           elif args.csv:
-            print( getCsv(data) )
+            print( getCsv(aRow) )
         if args.json and not args.merge:
           print("]")
     if not args.merge:
