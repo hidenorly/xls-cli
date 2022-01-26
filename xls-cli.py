@@ -60,6 +60,13 @@ def getJson(row):
   result = "[ " + getCsvJsonCommon(row) + " ],"
   return result
 
+def dumpSheet(aSheet, args):
+  for aRow in aSheet.values:
+    if args.json:
+      print( "  " + getJson(aRow) )
+    elif args.csv:
+      print( getCsv(aRow) )
+
 
 if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Parse command line options.')
@@ -67,7 +74,7 @@ if __name__=="__main__":
   parser.add_argument('-j', '--json', action='store_true', default=False, help='Output as json')
   parser.add_argument('-c', '--csv', action='store_true', default=False, help='Output as csv')
   parser.add_argument('-m', '--merge', action='store_true', default=False, help='Output table as merged')
-
+  parser.add_argument('-s', '--sheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
 
   args = parser.parse_args()
 
@@ -80,15 +87,12 @@ if __name__=="__main__":
     if os.path.exists( aFile ):
       workBook = xl.load_workbook( aFile, read_only=True, keep_vba=False, data_only=True, keep_links=False )
       for aSheet in workBook:
-        if args.json and not args.merge:
-          print("[")
-        for aRow in aSheet.values:
-          if args.json:
-            print( "  " + getJson(aRow) )
-          elif args.csv:
-            print( getCsv(aRow) )
-        if args.json and not args.merge:
-          print("]")
+        if args.sheet == "*" or aSheet.title == args.sheet:
+          if args.json and not args.merge:
+            print("[")
+          dumpSheet(aSheet, args)
+          if args.json and not args.merge:
+            print("]")
     if not args.merge:
       print("")
   if args.json and args.merge:
