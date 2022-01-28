@@ -92,6 +92,31 @@ def openSheet(book, sheetName):
 
   return result
 
+def getValueArrayFromCells(cells):
+  result = []
+  for aCol in cells:
+    result.append( aCol.value )
+  return result
+
+def getLastPosition( sheet ):
+  return 1, 1
+
+def setCells(targetSheet, startPosX, startPosY, rows):
+  print("hello from " + str(startPosX) + ":" + str(startPosY) )
+  if isinstance(targetSheet, xl.worksheet.worksheet.Worksheet):
+    y = startPosY
+    for aRow in rows:
+      x = startPosX
+      for aCell in aRow:
+        targetSheet.cell(row=y, column=x).value = aCell.value
+        x = x + 1
+      y = y + 1
+
+def dumpRows(rows):
+  for aRow in rows:
+    data = getValueArrayFromCells( aRow )
+    print( getCsv( data ) )
+
 
 if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Parse command line options.')
@@ -120,6 +145,12 @@ if __name__=="__main__":
       if aSheet:
         print( "sheet[" + str(i) + "]:" + aSheet.title )
       i = i + 1
+
+    if sheets[0] and sheets[1]:
+      sourceRows = sheets[0].rows
+
+      startPosX, startPosY = getLastPosition( sheets[1] )
+      setCells( sheets[1], startPosX, startPosY, sourceRows )
 
     if len(books)==2:
       books[1].save( args.args[1] )
