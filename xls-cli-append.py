@@ -99,7 +99,10 @@ def getValueArrayFromCells(cells):
   return result
 
 def getLastPosition( sheet ):
-  return 1, 1
+  if sheet.max_column==1 and sheet.max_row == 1:
+    return 1, 1
+  else:
+    return 1, sheet.max_row+1
 
 def setCells(targetSheet, startPosX, startPosY, rows):
   print("hello from " + str(startPosX) + ":" + str(startPosY) )
@@ -117,12 +120,18 @@ def dumpRows(rows):
     data = getValueArrayFromCells( aRow )
     print( getCsv( data ) )
 
+def getAllSheets(book):
+  result = []
+  for aSheet in book:
+    result.append( aSheet )
+  return result
 
 if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Parse command line options.')
   parser.add_argument('args', nargs='*', help='Specify input.xlsx output.xlsx')
-  parser.add_argument('-i', '--inputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1, all sheet if not specified')
-  parser.add_argument('-o', '--outputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1, 1st found sheet if not specified')
+  parser.add_argument('-i', '--inputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
+  parser.add_argument('-o', '--outputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
+  parser.add_argument('-m', '--merge', action='store_true', default=False, help='Specify if you want to merge all of sheets of input book')
 
   args = parser.parse_args()
 
@@ -132,25 +141,26 @@ if __name__=="__main__":
     targetSheets.append( args.outputsheet )
 
     books=[]
-    sheets=[]
     i = 0
     for aFile in args.args:
-      aBook = openBook( aFile)
+      aBook = openBook( aFile )
       books.append( aBook )
-      sheets.append( openSheet( aBook, targetSheets[i] ) )
       i = i + 1
 
-    i = 0
-    for aSheet in sheets:
-      if aSheet:
-        print( "sheet[" + str(i) + "]:" + aSheet.title )
-      i = i + 1
+    inputSheets = []
+    if args.merge:
+      inputSheets = getAllSheets( books[0] )
+      if len(inputSheets) == 0:
+       inputSheets.append( books[0].create_sheet() )
+    else:
+      inputSheets.append( openSheet( books[0], targetSheets[0] ) )
 
-    if sheets[0] and sheets[1]:
-      sourceRows = sheets[0].rows
+    outputSheet = openSheet( books[1], targetSheets[1] )
 
-      startPosX, startPosY = getLastPosition( sheets[1] )
-      setCells( sheets[1], startPosX, startPosY, sourceRows )
+    if len(inputSheets)>0 and outputSheet:
+      for anInputSheet in inputSheets:
+        sourceRows = anInputSheet.rows
+        startPosX, startPosY = getLastPosition( outputSheet )
+        setCells( outputSheet, startPosX, startPosY, sourceRows )
 
-    if len(books)==2:
-      books[1].save( args.args[1] )
+    books[1].save( args.args[1] )
