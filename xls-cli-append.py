@@ -132,6 +132,7 @@ if __name__=="__main__":
   parser.add_argument('-i', '--inputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
   parser.add_argument('-o', '--outputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
   parser.add_argument('-m', '--merge', action='store_true', default=False, help='Specify if you want to merge all of sheets of input book')
+  parser.add_argument('-r', '--range', action='store', default="None", help='Specify range e.g. A1:C3 if you want to specify input range')
 
   args = parser.parse_args()
 
@@ -159,7 +160,11 @@ if __name__=="__main__":
 
     if len(inputSheets)>0 and outputSheet:
       for anInputSheet in inputSheets:
-        sourceRows = anInputSheet.rows
+        sourceRows = []
+        if args.range:
+          sourceRows = anInputSheet[args.range]
+        else:
+          sourceRows = anInputSheet.rows
         startPosX, startPosY = getLastPosition( outputSheet )
         setCells( outputSheet, startPosX, startPosY, sourceRows )
 
