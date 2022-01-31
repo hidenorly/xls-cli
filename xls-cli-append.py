@@ -132,7 +132,8 @@ if __name__=="__main__":
   parser.add_argument('-i', '--inputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
   parser.add_argument('-o', '--outputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
   parser.add_argument('-m', '--merge', action='store_true', default=False, help='Specify if you want to merge all of sheets of input book')
-  parser.add_argument('-r', '--range', action='store', default="None", help='Specify range e.g. A1:C3 if you want to specify input range')
+  parser.add_argument('-r', '--range', action='store', default=None, help='Specify range e.g. A1:C3 if you want to specify input range')
+  parser.add_argument('-s', '--swap', action='store_true', default=False, help='Specify if you want to swap row and column')
 
   args = parser.parse_args()
 
@@ -163,8 +164,13 @@ if __name__=="__main__":
         sourceRows = []
         if args.range:
           sourceRows = anInputSheet[args.range]
+          if args.swap:
+            sourceRows = list(map(list, zip(*sourceRows)))
         else:
-          sourceRows = anInputSheet.rows
+          if args.swap:
+            sourceRows = anInputSheet.columns
+          else:
+            sourceRows = anInputSheet.rows
         startPosX, startPosY = getLastPosition( outputSheet )
         setCells( outputSheet, startPosX, startPosY, sourceRows )
 
