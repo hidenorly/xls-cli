@@ -17,6 +17,7 @@ import os
 import argparse
 import unicodedata
 import openpyxl as xl
+import csv
 
 def ljust_jp(value, length, pad = " "):
   count_length = 0
@@ -104,14 +105,17 @@ def getLastPosition( sheet ):
   else:
     return 1, sheet.max_row+1
 
-def setCells(targetSheet, startPosX, startPosY, rows):
+def setCells(targetSheet, startPosX, startPosY, rows, xlSrcCell=True):
   print("hello from " + str(startPosX) + ":" + str(startPosY) )
   if isinstance(targetSheet, xl.worksheet.worksheet.Worksheet):
     y = startPosY
     for aRow in rows:
       x = startPosX
       for aCell in aRow:
-        targetSheet.cell(row=y, column=x).value = aCell.value
+        if xlSrcCell:
+          targetSheet.cell(row=y, column=x).value = aCell.value
+        else:
+          targetSheet.cell(row=y, column=x).value = aCell
         x = x + 1
       y = y + 1
 
@@ -124,6 +128,16 @@ def getAllSheets(book):
   result = []
   for aSheet in book:
     result.append( aSheet )
+  return result
+
+def getSheets(book, targetSheet, enableMerge):
+  result = []
+  if enableMerge:
+    result = getAllSheets( book )
+    if len(result) == 0:
+     result.append( books.create_sheet() )
+  else:
+    result.append( openSheet( book, targetSheet ) )
   return result
 
 def getDataFromXlsSheet(aSheet, range, swap):
@@ -142,8 +156,48 @@ def getDataFromXlsSheet(aSheet, range, swap):
   return resultRows
 
 def isXlsBook(filename):
-  return filename.endswith(".xlsx") or filename.endswith(".xls")
+  return filename.endswith(".xlsx") or filename.endswith(".xls") or filename.endswith(".xlsm")
 
+
+def openCsv( fileName ):
+  result = []
+  if os.path.exists( fileName ):
+    file = open( fileName )
+    if file:
+      reader = csv.reader(file, quoting=csv.QUOTE_MINIMAL)
+      for aRow in reader:
+        data = []
+        for aCol in aRow:
+          aCol = aCol.strip()
+          if aCol.startswith("\""):
+            aCol = aCol[1:len(aCol)]
+          if aCol.endswith("\""):
+            aCol = aCol[0:len(aCol)-1]
+          data.append( aCol )
+        result.append( data )
+  return result
+
+def getDataWithRange( rows, range ):
+  result = rows
+  # TODO: range support in csv
+  return result
+
+def getSwappedData( rows ):
+  result = [] #list(map(list, zip(*rows)))
+  nMaxColSize = 0
+  for aRow in rows:
+    nSize = len(aRow)
+    if nSize > nMaxColSize:
+      nMaxColSize = nSize
+  for aRow in rows:
+    result.append( [] )
+  for aRow in rows:
+    x = 0
+    for aCol in aRow:
+      result[x].append( aCol )
+      x = x + 1
+
+  return result
 
 if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Parse command line options.')
@@ -157,33 +211,23 @@ if __name__=="__main__":
   args = parser.parse_args()
 
   if len(args.args)==2:
-    targetSheets = []
-    targetSheets.append( args.inputsheet )
-    targetSheets.append( args.outputsheet )
+    outputBook = openBook( args.args[1] )
+    outputSheet = openSheet( outputBook, args.outputsheet )
 
-    books=[]
-    i = 0
-    for aFile in args.args:
-      aBook = None
-      if isXlsBook(aFile):
-        aBook = openBook( aFile )
-      books.append( aBook )
-      i = i + 1
-
-    inputSheets = []
-    if args.merge:
-      inputSheets = getAllSheets( books[0] )
-      if len(inputSheets) == 0:
-       inputSheets.append( books[0].create_sheet() )
-    else:
-      inputSheets.append( openSheet( books[0], targetSheets[0] ) )
-
-    outputSheet = openSheet( books[1], targetSheets[1] )
-
-    if len(inputSheets)>0 and outputSheet:
+    if isXlsBook( args.args[0] ):
+      inputBook = openBook( args.args[0] )
+      inputSheets = getSheets( inputBook, args.inputsheet, args.merge )
       for anInputSheet in inputSheets:
         sourceRows = getDataFromXlsSheet( anInputSheet, args.range, args.swap )
         startPosX, startPosY = getLastPosition( outputSheet )
         setCells( outputSheet, startPosX, startPosY, sourceRows )
+    else:
+      sourceRows = openCsv( args.args[0] )
+      if args.range:
+        sourceRows = getDataWithRange( sourceRows, args.range )
+      if args.swap:
+        sourceRows = getSwappedData( sourceRows )
+      startPosX, startPosY = getLastPosition( outputSheet )
+      setCells( outputSheet, startPosX, startPosY, sourceRows, False )
 
-    books[1].save( args.args[1] )
+    outputBook.save( args.args[1] )
