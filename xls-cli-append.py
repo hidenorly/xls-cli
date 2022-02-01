@@ -126,6 +126,25 @@ def getAllSheets(book):
     result.append( aSheet )
   return result
 
+def getDataFromXlsSheet(aSheet, range, swap):
+  resultRows = []
+
+  if range:
+    resultRows = aSheet[args.range]
+    if swap:
+      resultRows = list(map(list, zip(*resultRows)))
+  else:
+    if swap:
+      resultRows = aSheet.columns
+    else:
+      resultRows = aSheet.rows
+
+  return resultRows
+
+def isXlsBook(filename):
+  return filename.endswith(".xlsx") or filename.endswith(".xls")
+
+
 if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Parse command line options.')
   parser.add_argument('args', nargs='*', help='Specify input.xlsx output.xlsx')
@@ -145,7 +164,9 @@ if __name__=="__main__":
     books=[]
     i = 0
     for aFile in args.args:
-      aBook = openBook( aFile )
+      aBook = None
+      if isXlsBook(aFile):
+        aBook = openBook( aFile )
       books.append( aBook )
       i = i + 1
 
@@ -161,16 +182,7 @@ if __name__=="__main__":
 
     if len(inputSheets)>0 and outputSheet:
       for anInputSheet in inputSheets:
-        sourceRows = []
-        if args.range:
-          sourceRows = anInputSheet[args.range]
-          if args.swap:
-            sourceRows = list(map(list, zip(*sourceRows)))
-        else:
-          if args.swap:
-            sourceRows = anInputSheet.columns
-          else:
-            sourceRows = anInputSheet.rows
+        sourceRows = getDataFromXlsSheet( anInputSheet, args.range, args.swap )
         startPosX, startPosY = getLastPosition( outputSheet )
         setCells( outputSheet, startPosX, startPosY, sourceRows )
 
