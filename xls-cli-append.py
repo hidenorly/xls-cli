@@ -177,9 +177,61 @@ def openCsv( fileName ):
         result.append( data )
   return result
 
-def getDataWithRange( rows, range ):
-  result = rows
-  # TODO: range support in csv
+
+def getXlRowColFromXlPos(xlPos):
+  xlPos = str( xlPos )
+  nLen = len( xlPos )
+  nPos = 0
+  for i in range( nLen ):
+    digit = xlPos[i:i+1]
+    if isRobustNumeric( digit ):
+      nPos = i
+      break
+  xlCol = xlPos[0:nPos]
+  xlRow = xlPos[nPos:nLen]
+
+  return xlRow, xlCol
+
+def getPositionFromXlLocate(xlPos):
+  xlRow, xlCol = getXlRowColFromXlPos( xlPos )
+  return int( xlRow ), int( xl.utils.column_index_from_string(xlCol) )
+
+def getRangeFromXlRange(xlPos):
+  xlPos = str( xlPos )
+  nPos = xlPos.find(":")
+  pos = []
+  if nPos != -1:
+    pos.append( xlPos[0:nPos] )
+    pos.append( xlPos[nPos+1:len(xlPos)] )
+  result=[]
+  for aPos in pos:
+    nRow, nCol = getPositionFromXlLocate( aPos )
+    result.append( nRow )
+    result.append( nCol )
+
+  if len(result) == 4:
+    if result[0] >= result[2] and result[1] >= result[3]:
+      result[0], result[1], result[2], result[3] = result[2], result[3], result[0], result[1]
+    return result[0], result[1], result[2], result[3]
+
+  return 1,1,1,1
+
+def getDataWithRange( rows, xlRange ):
+  nStartRow, nStartCol, nEndRow, nEndCol = getRangeFromXlRange( xlRange )
+  nColSize = nEndCol - nStartCol + 1
+  nRowSize = nEndRow - nStartRow + 1
+
+  nStartRow = nStartRow - 1
+  nStartCol = nStartCol - 1
+
+  result = []
+
+  for aRow in range(nRowSize):
+    theCol = []
+    for aCol in range(nColSize):
+      theCol.append( rows[ nStartRow + aRow ][ nStartCol + aCol ] )
+    result.append( theCol )
+
   return result
 
 def getSwappedData( rows ):
@@ -189,7 +241,7 @@ def getSwappedData( rows ):
     nSize = len(aRow)
     if nSize > nMaxColSize:
       nMaxColSize = nSize
-  for aRow in rows:
+  for i in range(nMaxColSize):
     result.append( [] )
   for aRow in rows:
     x = 0
