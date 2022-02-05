@@ -159,12 +159,12 @@ def isXlsBook(filename):
   return filename.endswith(".xlsx") or filename.endswith(".xls") or filename.endswith(".xlsm")
 
 
-def openCsv( fileName ):
+def openCsv( fileName, delimiter ):
   result = []
   if os.path.exists( fileName ):
     file = open( fileName )
     if file:
-      reader = csv.reader(file, quoting=csv.QUOTE_MINIMAL)
+      reader = csv.reader(file, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter)
       for aRow in reader:
         data = []
         for aCol in aRow:
@@ -259,6 +259,7 @@ if __name__=="__main__":
   parser.add_argument('-m', '--merge', action='store_true', default=False, help='Specify if you want to merge all of sheets of input book')
   parser.add_argument('-r', '--range', action='store', default=None, help='Specify range e.g. A1:C3 if you want to specify input range')
   parser.add_argument('-s', '--swap', action='store_true', default=False, help='Specify if you want to swap row and column')
+  parser.add_argument('-d', '--delimiter', action='store', default=",", help='Specify delimiter for .csv file (default:,)')
 
   args = parser.parse_args()
 
@@ -274,7 +275,7 @@ if __name__=="__main__":
         startPosX, startPosY = getLastPosition( outputSheet )
         setCells( outputSheet, startPosX, startPosY, sourceRows )
     else:
-      sourceRows = openCsv( args.args[0] )
+      sourceRows = openCsv( args.args[0], args.delimiter )
       if args.range:
         sourceRows = getDataWithRange( sourceRows, args.range )
       if args.swap:
