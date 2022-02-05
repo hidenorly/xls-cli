@@ -1,4 +1,4 @@
-# How to use
+# How to use : xls-cli.py
 
 ```
 % python3 xls-cli.py --help                         
@@ -44,6 +44,85 @@ only output the sheet of "Sheet1" as csv
 ```
 % python3 xls-cli.py sample.xlsx --json
 ```
+
+
+# xls-cli-append.py
+
+```
+usage: xls-cli-append.py [-h] [-i INPUTSHEET] [-o OUTPUTSHEET] [-m] [-r RANGE] [-s] [args ...]
+
+Parse command line options.
+
+positional arguments:
+  args                  Specify input.xlsx output.xlsx
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUTSHEET, --inputsheet INPUTSHEET
+                        Specfy sheet name e.g. Sheet1
+  -o OUTPUTSHEET, --outputsheet OUTPUTSHEET
+                        Specfy sheet name e.g. Sheet1
+  -m, --merge           Specify if you want to merge all of sheets of input book
+  -r RANGE, --range RANGE
+                        Specify range e.g. A1:C3 if you want to specify input range
+  -s, --swap            Specify if you want to swap row and column
+```
+
+## append data to specified xls sheet from specified xls sheet
+
+```
+% python3 xls-cli-append.py input.xlsx output.xlsx
+```
+
+### all of input.xls's sheets
+
+```
+% python3 xls-cli-append.py input.xlsx output.xlsx --merge
+```
+
+### with range
+
+```
+% python3 xls-cli-append.py input.xlsx output.xlsx --range="A1:C2"
+```
+
+### column, row swapped
+
+```
+% python3 xls-cli-append.py input.xlsx output.xlsx --swap
+```
+
+### range specified all of sheets and col&row swapped
+
+```
+% python3 xls-cli-append.py input.xlsx output.xlsx --range="A1:C2" --swap --merge
+```
+
+
+## append data to specified xls sheet from specified csv file
+
+```
+% python3 xls-cli-append.py sample.csv sample2.xlsx
+```
+
+### with range
+
+```
+% python3 xls-cli-append.py sample.csv sample2.xlsx --range="A1:C2"
+```
+
+### column, row swapped
+
+```
+% python3 xls-cli-append.py sample.csv sample2.xlsx --swap
+```
+
+### column, row swapped with ranged
+
+```
+% python3 xls-cli-append.py sample.csv sample2.xlsx --swap --range="A1:C2"
+```
+
 
 
 # Setup
