@@ -253,7 +253,7 @@ def getSwappedData( rows ):
 
 if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Parse command line options.')
-  parser.add_argument('args', nargs='*', help='Specify input.xlsx output.xlsx')
+  parser.add_argument('args', nargs='*', help='Specify output.xlsx input1.xlsx input2.xlsx ... ')
   parser.add_argument('-i', '--inputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
   parser.add_argument('-o', '--outputsheet', action='store', default="*", help='Specfy sheet name e.g. Sheet1')
   parser.add_argument('-m', '--merge', action='store_true', default=False, help='Specify if you want to merge all of sheets of input book')
@@ -263,24 +263,25 @@ if __name__=="__main__":
 
   args = parser.parse_args()
 
-  if len(args.args)==2:
-    outputBook = openBook( args.args[1] )
+  if len(args.args)>=2:
+    outputBook = openBook( args.args[0] )
     outputSheet = openSheet( outputBook, args.outputsheet )
 
-    if isXlsBook( args.args[0] ):
-      inputBook = openBook( args.args[0] )
-      inputSheets = getSheets( inputBook, args.inputsheet, args.merge )
-      for anInputSheet in inputSheets:
-        sourceRows = getDataFromXlsSheet( anInputSheet, args.range, args.swap )
+    for i in range(1, len(args.args)):
+      if isXlsBook( args.args[i] ):
+        inputBook = openBook( args.args[i] )
+        inputSheets = getSheets( inputBook, args.inputsheet, args.merge )
+        for anInputSheet in inputSheets:
+          sourceRows = getDataFromXlsSheet( anInputSheet, args.range, args.swap )
+          startPosX, startPosY = getLastPosition( outputSheet )
+          setCells( outputSheet, startPosX, startPosY, sourceRows )
+      else:
+        sourceRows = openCsv( args.args[i], args.delimiter )
+        if args.range:
+          sourceRows = getDataWithRange( sourceRows, args.range )
+        if args.swap:
+          sourceRows = getSwappedData( sourceRows )
         startPosX, startPosY = getLastPosition( outputSheet )
-        setCells( outputSheet, startPosX, startPosY, sourceRows )
-    else:
-      sourceRows = openCsv( args.args[0], args.delimiter )
-      if args.range:
-        sourceRows = getDataWithRange( sourceRows, args.range )
-      if args.swap:
-        sourceRows = getSwappedData( sourceRows )
-      startPosX, startPosY = getLastPosition( outputSheet )
-      setCells( outputSheet, startPosX, startPosY, sourceRows, False )
+        setCells( outputSheet, startPosX, startPosY, sourceRows, False )
 
-    outputBook.save( args.args[1] )
+    outputBook.save( args.args[0] )
