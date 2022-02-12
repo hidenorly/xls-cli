@@ -54,7 +54,7 @@ usage: xls-cli-append.py [-h] [-i INPUTSHEET] [-o OUTPUTSHEET] [-m] [-r RANGE] [
 Parse command line options.
 
 positional arguments:
-  args                  Specify input.xlsx output.xlsx
+  args                  Specify output.xlsx input.xlsx
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -71,31 +71,31 @@ optional arguments:
 ## append data to specified xls sheet from specified xls sheet
 
 ```
-% python3 xls-cli-append.py input.xlsx output.xlsx
+% python3 xls-cli-append.py output.xlsx input.xlsx
 ```
 
 ### all of input.xls's sheets
 
 ```
-% python3 xls-cli-append.py input.xlsx output.xlsx --merge
+% python3 xls-cli-append.py output.xlsx input.xlsx --merge
 ```
 
 ### with range
 
 ```
-% python3 xls-cli-append.py input.xlsx output.xlsx --range="A1:C2"
+% python3 xls-cli-append.py output.xlsx input.xlsx --range="A1:C2"
 ```
 
 ### column, row swapped
 
 ```
-% python3 xls-cli-append.py input.xlsx output.xlsx --swap
+% python3 xls-cli-append.py output.xlsx input.xlsx --swap
 ```
 
 ### range specified all of sheets and col&row swapped
 
 ```
-% python3 xls-cli-append.py input.xlsx output.xlsx --range="A1:C2" --swap --merge
+% python3 xls-cli-append.py output.xlsx input.xlsx --range="A1:C2" --swap --merge
 ```
 
 
